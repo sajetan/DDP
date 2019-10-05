@@ -1,0 +1,5 @@
+export ZYNQ=ok
+
+#Need to test: 
+#source ~micasusr/design/scripts/xilinx_vivado_2016.2.rc
+source ~micasusr/design/scripts/xilinx_vivado_2018.2.rc
