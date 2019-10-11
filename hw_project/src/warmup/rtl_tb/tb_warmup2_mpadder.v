@@ -31,12 +31,12 @@ module tb_warmup2_mpadder();
     reg          clk;
     reg          reset;
     reg          instart;
-    reg  [127:0] inA;
-    reg  [127:0] inB;
-    wire [128:0] outC;
+    reg  [513:0] inA;
+    reg  [513:0] inB;
+    wire [514:0] outC;
     wire         outdone;
 
-    warmup2_mpadder dut(
+    warmup2_mpadder_answer dut(
         clk,
         reset,
         instart,
@@ -54,8 +54,8 @@ module tb_warmup2_mpadder();
     initial begin
 
         reset <= 1'b1;
-        inA   <= 128'h0;
-        inB   <= 128'h0;
+        inA   <= 514'h0;
+        inB   <= 514'h0;
 
         #`RESET_TIME
 
@@ -64,8 +64,8 @@ module tb_warmup2_mpadder();
         #`CLK_PERIOD;
 
 
-        inA     <= 128'hcbc87cf0da4497687834fad762e4fa0d;
-        inB     <= 128'h88f32f2f5b948a6ccf335529fa86ee6c;
+        inA     <= 514'h2b18d6f6c5638662685a263c655a8b01988598ac7402c67456aa1dcaf67a06aa8b247a4740916104c8993f6e8a726a0bbf6fa4f8c463ac4cffc962ca924872887;
+        inB     <= 514'h2265f756805dae91b4090d2f1ce7eb23aedea6273b5f3799fecdf2aff3e9bd1f1baca8ce4935605379aebe0a1a7a800f5bf5c1b236766765bf51e4f0d9290a798;
         instart <= 1'b1;
         #`CLK_PERIOD;
         instart <= 1'b0;
