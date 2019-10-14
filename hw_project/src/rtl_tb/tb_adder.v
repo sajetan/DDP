@@ -1,4 +1,5 @@
 `timescale 1ns / 1ps
+//testbench for adder.v
 
 `define RESET_TIME 25
 `define CLK_PERIOD 10
