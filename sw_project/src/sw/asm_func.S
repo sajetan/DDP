@@ -74,6 +74,33 @@ multiply:
 .endfunc
 
 
+.text
+
+.global opt_basic_add
+.func opt_basic_add, opt_basic_add
+.type opt_basic_add, %function
+
+opt_basic_add:
+cmp r2,#0
+add r0, r0,r1
+beq LoopDone
+
+ldr r3, [r0],#4
+CMN r3,r2
+adc r3,r3,r2
+str r3, [r0]
+setc r2
+LoopDone:
+
+
+
+
+cmn r0,r1
+adc r0, r0, r1
+
+bx lr
+.endfunc
+
 
 
 
