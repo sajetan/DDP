@@ -51,18 +51,10 @@ void montMulOpt(uint32_t *a, uint32_t *b, uint32_t *n, uint32_t *n_prime, uint32
 	uint32_t s;
 	uint32_t z[65]={0x0};
 	uint32_t temp_res [32]={0x0};
-	//START_TIMING
 	for1_opt(size, a, b, t);
-	//STOP_TIMING
-	//START_TIMING
 	for2_opt(size, n_prime[0], n, t);
-	//STOP_TIMING
-	//START_TIMING
 	memcpy(temp_res, &t[size],2*8*size );
-	//STOP_TIMING
-//START_TIMING
 	cond_sub(temp_res, n,res,size);
-//STOP_TIMING
 
 }
 
