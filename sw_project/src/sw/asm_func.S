@@ -150,46 +150,48 @@ basic_multiply:
 .type for1_opt, %function
 
 for1_opt:
-	push {r4-r12}       //@push original value from registors to memory
-	mov r4 , #0						//@ r4 = i = size         //r0 r1 r5
+	push {r4-r12}				@push original value from registors to memory
+	mov r4 , #0					@ r4 = i = size         //r0 r1 r5
 outerloop:
-	cmp r4, r0						@if i = 0 ??
+	cmp r4, r0					@if i = 0 ??
 	beq outerloopDone
-	mov r12 , #0                     @ r14 = C = 0
-	mov r5 , #0						//@ j = size = r5   for inner loop
+	mov r12 , #0                @ r14 = C = 0
+	mov r5 , #0					@ j = size = r5   for inner loop
 
 innerloop:
-	cmp r5, r0                      @ r5 =j = 0 
+	cmp r5, r0                  @ r5 =j = 0
 	beq innerloopDone
 	
-	add r7, r1, r5, lsl #2       @ a[j]
-	add r8, r2, r4, lsl #2		@ b[i]
+//	add r7, r1, r5, lsl #2      @ a[j]
+//	add r8, r2, r4, lsl #2		@ b[i]
+	ldr r7, [r1, r5, lsl #2]				@ r7=a[j]
+	ldr r8, [r2, r4, lsl #2]				@r8 = b[i]
 	add r6, r4, r5 			 	@ r6=i+j
-	
-	add r6, r3, r6, lsl #2      @ t[i+j]
-	ldr r7, [r7]				@ r7=a[j]
-	ldr r8, [r8]				@r8 = b[i]
-	ldr r9, [r6]				@r9 = t[i+j]
 
-	umull r10, r11, r7,r8       @ r10, r11 = r7*r8 = a[j]*b[i]
-	adds r10 , r10,r9			@r10 = r10+r9 == a[j]+b[i]+t[i+j] only LSB
-	adc  r11 ,r11,#0			@r11 = r11+0+Carry
+//	add r6, r3, r6, lsl #2      @ t[i+j]
+
+	ldr r10, [r3, r6, lsl #2]				@r9 = t[i+j]
+	mov r11, #0
+
+	umlal r10, r11, r7,r8       @ r10, r11 = r7*r8 = a[j]*b[i]+t[i+j]
+	//adds r10 , r10,r9			@r10 = r10+r9 == a[j]+b[i]+t[i+j] only LSB
+	//adc  r11 ,r11,#0			@r11 = r11+0+Carry
 	adds r10 , r10, r12			@r10 = r10+C
 	adc  r11 ,r11 ,#0			@r11 = r11+0+Carry
-	str r10, [r6]				@t[i+j]=r10
+	str r10, [r3, r6, lsl #2]				@t[i+j]=r10
 	mov r12, r11				@C=r11
 	add r5 ,r5, #1				@ j = j+1
 	b innerloop
 innerloopDone:
 	add r9, r4, r0
-	add r9, r3, r9, lsl #2		@ t[i+size]
-	str r12, [r9]				@ t[i+size]=C
+	//add r9, r3, r9, lsl #2		@ t[i+size]
+	str r12, [r3, r9, lsl #2]				@ t[i+size]=C
 	add r4,r4, #1 				@ i=i+1
 	b outerloop
 outerloopDone:
 	pop {r4-r12}     			@take back the original value
-	mov r0, r3
-	bx lr //@go back
+	//mov r0, r3
+	bx lr 						@go back
 .endfunc
 
 /////////////////for second nexted loop
@@ -200,35 +202,35 @@ outerloopDone:
 .type for2_opt, %function
 
 for2_opt:
-	push {r4-r12}       //@push original value from registors to memory
-	mov r4 , #0						//@ r4 = i = size         //r0 r1 r5
+	push {r4-r12}				@push original value from registors to memory
+	mov r4 , #0					@ r4 = i = size         //r0 r1 r5
 outerloop2:
-	cmp r4, r0						@if i = 0 ??
+	cmp r4, r0					@if i = 0 ??
 	beq outerloopDone2
-	mov r12 , #0                     @ r12 = C = 0
-	add r7, r3, r4, lsl #2			@t[i]
-	ldr r7, [r7]
-	mul r6, r7, r1					@r6 = z= n_prime*t[i]
-	mov r5 , #0						//@ j = size = r5   for inner loop
+	mov r12 , #0                @ r12 = C = 0
+	//add r7, r3, r4, lsl #2		@t[i]
+	ldr r7, [r3, r4, lsl #2]
+	mul r6, r7, r1				@r6 = z= n_prime*t[i]
+	mov r5 , #0					@ j = size = r5   for inner loop
 
 innerloop2:
-	cmp r5, r0                      @ r5 =j = 0 
+	cmp r5, r0                  @ r5 =j = 0
 	add r7, r4, r0
 	beq add_fun
 	
-	add r10, r2, r5, lsl #2       @ n[j]
-	ldr r10, [r10] 				@ load r10=n[j]
+	//add r10, r2, r5, lsl #2     @ n[j]
+	ldr r9, [r2, r5, lsl #2] 				@ load r10=n[j]
 	
 	add r8, r4, r5 			 	@ r8=i+j
-	add r8, r3, r8, lsl #2      @ r8=t[i+j]
-	ldr r9, [r8]				@r9 = t[i+j]
-
-	umull r10, r11, r6,r10       @ r10, r11 = r6*r10 = z*n[j]
-	adds r10 , r10, r9			@r10 = r10+r9 == z+n[j]+t[i+j] only LSB
-	adc  r11 ,r11,#0			@r11 = r11+0+Carry
+	//add r8, r3, r8, lsl #2      @ r8=t[i+j]
+	ldr r10, [r3, r8, lsl #2]				@r9 = t[i+j]
+	mov r11, #0
+	umlal r10, r11, r6,r9      @ r10, r11 = r6*r10 = z*n[j]
+//	adds r10 , r10, r9			@r10 = r10+r9 == z+n[j]+t[i+j] only LSB
+//	adc  r11 ,r11,#0			@r11 = r11+0+Carry
 	adds r10 , r10, r12			@r10 = r10+C
 	adc  r11 ,r11 ,#0			@r11 = r11+0+Carry
-	str r10, [r8]				@t[i+j]=r10
+	str r10, [r3, r8, lsl #2]				@t[i+j]=r10
 
 	mov r12, r11				@C=r11
 
@@ -238,10 +240,11 @@ add_fun:
 	cmp r12, #0
 
     beq add_funDone
-	add r10, r3, r7, lsl #2		@r7=t[i+size]
-	ldr r9, [r10]
+//	add r10, r3, r7, lsl #2		@r7=t[i+size]
+	ldr r9, [r3, r7, lsl #2]
 	adds r9, r9, r12
-	str r9, [r10]
+	str r9, [r3, r7, lsl #2]
+	mov r12,#0
 	adc r12, r12, #0
 	add r7, r7, #1
 	b add_fun
@@ -252,37 +255,11 @@ add_funDone:
 
 outerloopDone2:
 	pop {r4-r12}     			@take back the original value
-	mov r0, r3
-	bx lr //@go back
+	//mov r0, r3
+	bx lr 						@go back
 .endfunc
 
 /////////////////////
-
-.text
-
-.global ADD
-.func ADD, ADD
-.type ADD, %function
-
-ADD:
-	add r0, r0, r1, lsl #2
-	push {r4-r5}
-	cmp r2, #0
-    beq end_add1
-add_loop1:
-	ldr r5, [r0]
-	adds r4, r2, r5
-	mov r5, #0
-	adc r2, r5, #0  // r2 = carry bit ( 0 + 0 + carry )
-	str r4, [r0], #4
-	cmp r2, #0
-	bne add_loop1
-end_add1:
-	pop {r4-r5}
-	bx lr
-
-.endfunc
-
 
 
 

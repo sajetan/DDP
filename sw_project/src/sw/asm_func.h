@@ -36,5 +36,6 @@ uint32_t basic_multiply( uint32_t a, uint32_t b);
 uint32_t for1_opt(uint32_t size, uint32_t *a, uint32_t *b, uint32_t *t);
 uint32_t for2_opt(uint32_t size, uint32_t n_prime_zero, uint32_t *n, uint32_t *t);
 
+void SUB_COND(uint32_t *a, uint32_t *b);
 void ADD(uint32_t *t, uint32_t size_i, uint32_t c);
 #endif /* ASM_FUNC_H_ */

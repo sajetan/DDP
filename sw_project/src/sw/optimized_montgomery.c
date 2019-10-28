@@ -8,6 +8,8 @@
 
 #include "montgomery.h"
 
+#include "common.h"
+
 void print_num2(uint32_t *in, uint32_t size)
 {
     int32_t i;
@@ -19,29 +21,19 @@ void print_num2(uint32_t *in, uint32_t size)
 }
 
 
-void add_fun(uint32_t *t, uint32_t i, uint32_t c){
-	uint64_t sum;
-	while(c!=0){
-		sum =(uint64_t)t[i]+(uint64_t)c;
-		c=(uint32_t)(sum>> 32);
-		t[i]=sum;
-		i++;
-	}
-}
-
 
 void cond_sub(uint32_t * a, uint32_t* b, uint32_t* res, uint32_t size){
-	if(a[size]!=0) {memcpy(res, a,2*8*size ); return;}
+	if(a[size]!=0) {arr_copy(a, res, 32); return;}
 	for(uint32_t i=size-1; i>=0; i--)
 	{
-		if(a[i]<b[i]){memcpy(res, a,2*8*size ); return;}
+		if(a[i]<b[i]){arr_copy(a, res, 32); return;}
 		else break;
 	}
 
 	uint32_t carry = 0;
 	for(uint32_t i = 0; i < size ; i++ )
 	{
-		res[i] = a[i]-b[i]-carry;
+		a[i] = a[i]-b[i]-carry;
 		if( a[i]-carry >= b[i] )
 			carry = 0;
 		else
@@ -59,27 +51,18 @@ void montMulOpt(uint32_t *a, uint32_t *b, uint32_t *n, uint32_t *n_prime, uint32
 	uint32_t s;
 	uint32_t z[65]={0x0};
 	uint32_t temp_res [32]={0x0};
-
-	uint32_t ter=for1_opt(size, a, b, t);
-
-	//uint32_t tup= for2_opt(size, n_prime[0], n, t);
-
-	//xil_printf("\r\n t=  0x%x 0x%x \n", t,tup );
-
-	for(uint32_t i=0;i<size;i++){
-		uint32_t c=0;
-		uint32_t z1 = (uint32_t)((uint64_t) t[i]*(uint64_t)n_prime[0]);
-		for (uint32_t j=0;j<size;j++){
-			c =opt_multiply(z1,  n[j],  i+j, &t, c);
-		}
-		ADD(t, i+size,  c);
-		//add_fun(t,i+size,c);
-	}
-
+	//START_TIMING
+	for1_opt(size, a, b, t);
+	//STOP_TIMING
+	//START_TIMING
+	for2_opt(size, n_prime[0], n, t);
+	//STOP_TIMING
+	//START_TIMING
 	memcpy(temp_res, &t[size],2*8*size );
-
+	//STOP_TIMING
+//START_TIMING
 	cond_sub(temp_res, n,res,size);
-
+//STOP_TIMING
 
 }
 
