@@ -2,13 +2,13 @@
  * montgomery.c
  *
  */
+#if 0
 
 #include "montgomery.h"
 
-void print_num(uint32_t *in, uint32_t size)
+void print_num1(uint32_t *in, uint32_t size)
 {
     int32_t i;
-
     xil_printf("0x");
     for (i = size-1; i >= 0; i--) {
     	xil_printf("%08x", in[i]);
@@ -62,16 +62,16 @@ void montMul(uint32_t *a, uint32_t *b, uint32_t *n, uint32_t *n_prime, uint32_t 
 	for(uint32_t i=0;i<size;i++){
 		uint32_t c=0;
 		for(uint32_t j=0;j<size;j++){
-
 			uint64_t sum =  (uint64_t) t[i+j]+(uint64_t)a[j]*(uint64_t)b[i]+(uint64_t)c;
 			c=(uint32_t)(sum>>32);
 			s=(uint32_t)sum;
 			t[i+j]=s;
 		}
+
 		t[i+size]=c;
+
 	}
-
-
+	//print_num1(t, 32);
 
 	for(uint32_t i=0;i<size;i++){
 		//xil_printf("--debug 1\n\r");
@@ -81,34 +81,28 @@ void montMul(uint32_t *a, uint32_t *b, uint32_t *n, uint32_t *n_prime, uint32_t 
 			uint64_t sum =  (uint64_t) t[i+j]+(uint64_t)z*(uint64_t)n[j]+(uint64_t)c;
 			c=sum>>32;
 			t[i+j]=(uint32_t)sum;
-			//xil_printf("i=%d j=%d sum [0x%x] carry[0x%x]\n\r", i,j,a[j],b[i], sum, c);
-
 		}
-		//xil_printf("--debug 2\n\r");
-		//ADDa(t,i+size,c);
 		add_fun(t,i+size,c);
-		//xil_printf("--debug 3\n\r");
-		//xil_printf("%x", t[i]);
 	}
-	xil_printf(" Res lol");
-	print_num1(res, 32);
 
-	xil_printf(" t ");
-	print_num1(t, 65);
 
 	for(uint32_t i=0;i<=size;i++){
 		temp_res[i]=t[i+size];
 	}
 
-	xil_printf(" Res ");
-	print_num1(temp_res, 32);
-	xil_printf("\n\r");
 
-	xil_printf("n =");
-	print_num1(n, 32);
-	xil_printf("\n\r");
+//	xil_printf(" tem Res ");
+//	print_num1(temp_res, 32);
+//	xil_printf("\n\r");
+
+//
+//	xil_printf("n =");
+//	print_num1(n, 32);
+//	xil_printf("\n\r");
 
 	cond_sub(temp_res, n,res,size);
+
+
 
 
 //	uint32_t i=size-1;
@@ -134,3 +128,7 @@ void montMul(uint32_t *a, uint32_t *b, uint32_t *n, uint32_t *n_prime, uint32_t 
 
 
 }
+
+
+#endif
+
