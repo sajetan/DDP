@@ -26,16 +26,15 @@ uint32_t arr_copy(uint32_t *a, uint32_t *b, uint32_t n);
 // pointer to n array is stored in [SP, #4] (one position above m)
 void multiply(uint32_t i, uint32_t *t, uint32_t *a, uint32_t *b, uint32_t *m, uint32_t *n);
 
-//moo functions
 uint32_t test1();
-//uint32_t test1();
 
 uint32_t opt_basic_add(uint32_t a, uint32_t b,uint32_t carry);
 uint32_t opt_multiply( uint32_t a, uint32_t b, uint32_t i, uint32_t *t, uint32_t c);
 uint32_t basic_multiply( uint32_t a, uint32_t b);
+
+//multiplication loop
 uint32_t for1_opt(uint32_t size, uint32_t *a, uint32_t *b, uint32_t *t);
+//reduction+carry propogation loop
 uint32_t for2_opt(uint32_t size, uint32_t n_prime_zero, uint32_t *n, uint32_t *t);
 
-void SUB_COND(uint32_t *a, uint32_t *b);
-void ADD(uint32_t *t, uint32_t size_i, uint32_t c);
 #endif /* ASM_FUNC_H_ */

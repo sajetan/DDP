@@ -141,7 +141,7 @@ basic_multiply:
 
 
 
-/////////////
+@Optimised nested loop for multiplication
 
 .text
 
@@ -190,11 +190,12 @@ innerloopDone:
 	b outerloop
 outerloopDone:
 	pop {r4-r12}     			@take back the original value
-	//mov r0, r3
+
 	bx lr 						@go back
 .endfunc
 
-/////////////////for second nexted loop
+
+@Optimised nested loop for reduction and carry addition
 .text
 
 .global for2_opt
@@ -202,13 +203,12 @@ outerloopDone:
 .type for2_opt, %function
 
 for2_opt:
-	push {r4-r12}				@push original value from registors to memory
-	mov r4 , #0					@ r4 = i = size         //r0 r1 r5
+	push {r4-r12}				@ push original value from registors to memory
+	mov r4 , #0					@r4 = i = size         //r0 r1 r5
 outerloop2:
 	cmp r4, r0					@if i = 0 ??
 	beq outerloopDone2
 	mov r12 , #0                @ r12 = C = 0
-	//add r7, r3, r4, lsl #2		@t[i]
 	ldr r7, [r3, r4, lsl #2]
 	mul r6, r7, r1				@r6 = z= n_prime*t[i]
 	mov r5 , #0					@ j = size = r5   for inner loop
@@ -217,30 +217,21 @@ innerloop2:
 	cmp r5, r0                  @ r5 =j = 0
 	add r7, r4, r0
 	beq add_fun
-	
-	//add r10, r2, r5, lsl #2     @ n[j]
-	ldr r9, [r2, r5, lsl #2] 				@ load r10=n[j]
-	
+	ldr r9, [r2, r5, lsl #2] 	@ load r10=n[j]
 	add r8, r4, r5 			 	@ r8=i+j
-	//add r8, r3, r8, lsl #2      @ r8=t[i+j]
-	ldr r10, [r3, r8, lsl #2]				@r9 = t[i+j]
+	ldr r10, [r3, r8, lsl #2]	@r9 = t[i+j]
 	mov r11, #0
-	umlal r10, r11, r6,r9      @ r10, r11 = r6*r10 = z*n[j]
-//	adds r10 , r10, r9			@r10 = r10+r9 == z+n[j]+t[i+j] only LSB
-//	adc  r11 ,r11,#0			@r11 = r11+0+Carry
+	umlal r10, r11, r6,r9       @r10, r11 = r6*r10 = z*n[j]
 	adds r10 , r10, r12			@r10 = r10+C
 	adc  r11 ,r11 ,#0			@r11 = r11+0+Carry
 	str r10, [r3, r8, lsl #2]				@t[i+j]=r10
-
 	mov r12, r11				@C=r11
-
 	add r5 ,r5, #1				@ j = j+1
 	b innerloop2
+
 add_fun:
 	cmp r12, #0
-
     beq add_funDone
-//	add r10, r3, r7, lsl #2		@r7=t[i+size]
 	ldr r9, [r3, r7, lsl #2]
 	adds r9, r9, r12
 	str r9, [r3, r7, lsl #2]
@@ -248,18 +239,14 @@ add_fun:
 	adc r12, r12, #0
 	add r7, r7, #1
 	b add_fun
-
 add_funDone:
 	add r4,r4, #1 				@ i=i+1
 	b outerloop2
 
 outerloopDone2:
 	pop {r4-r12}     			@take back the original value
-	//mov r0, r3
 	bx lr 						@go back
 .endfunc
-
-/////////////////////
 
 
 
