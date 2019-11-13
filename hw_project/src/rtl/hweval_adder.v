@@ -14,14 +14,14 @@ module hweval_adder (
        
     // Instantiate the adder    
     mpadder dut (
-        .clk      (clk     ),
-        .resetn   (resetn  ),
-        .start    (start   ),
-        .subtract (subtract),
-        .in_a     (in_a    ),
-        .in_b     (in_b    ),
-        .result   (result  ),
-        .done     (done    ));
+        clk,
+        resetn,
+        start,
+        subtract,
+        in_a,
+        in_b,
+        result,
+        done);
 
     reg [1:0] state;
 

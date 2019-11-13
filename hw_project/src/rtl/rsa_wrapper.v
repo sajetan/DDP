@@ -1,5 +1,13 @@
 `timescale 1ns / 1ps
 
+// TX_SIZE is defined in params.vh
+// It is set to 1024 for 1024-bit wide data transfers between Arm and FPGA
+// If desired, the data width can be set to 512-bit. 
+// It saves a bit: 300 LUTs, and 1000 registers, ...
+// For changing the transfer width, first you have to modify params.vh.
+// Then, you have to execute the following command: source ./tcl/configure.tcl
+// Finally, adapt the C code for that data length.
+// If you are not sure how to do it, please call a TA.
 `include "params.vh"
 
 module rsa_wrapper 
@@ -113,7 +121,7 @@ module rsa_wrapper
                 end
                 
                 STATE_COMPUTE: begin
-                    // Bitwise XOR the most signficant 32-bits with 0xDEADBEEF
+                    // Bitwise-XOR the most signficant 32-bits with 0xDEADBEEF
                     core_data <= {core_data[TX_SIZE-1:TX_SIZE-32]^32'hDEADBEEF, core_data[TX_SIZE-33:0]};
                 end
                 
@@ -155,7 +163,7 @@ module rsa_wrapper
     
     ////////////// - Debugging signals
     
-    // The four LEDs on the board are used as debug signals.
+    // The four LEDs on the board can be used as debug signals.
     // Here they are used to check the state transition.
 
     assign leds             = {1'b0,r_state};
