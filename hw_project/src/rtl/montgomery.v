@@ -7,7 +7,7 @@ module montgomery(
     input  [513:0] in_a,
     input  [513:0] in_b,
     input  [513:0] in_m,
-    output [511:0] result,  
+    output [513:0] result,  
     output         done
      );
  
@@ -144,9 +144,9 @@ module montgomery(
                            end
                            
                     4'd9:  begin        
-                            if (HTM2[516] == 1) begin            // if (C > M)  
-                                                HTM <= C ; 
-                                             end
+                            if (HTM2[513] == 0) begin            // if (C > M)  
+                               HTM <= C ; 
+                            end
                             else begin HTM <= HTM ; D <= 1'b1; end        
                            end 
                            
@@ -175,9 +175,12 @@ module montgomery(
                         else
                             nextstate <= 4'd0;
                         end
-                    4'd1   : begin 
-                                if (A[0] == 0) nextstate <=4'd3;
-                                else nextstate <= 4'd2;
+                    4'd1   : begin
+                                if (ctr == 0) nextstate <= 4'd7;
+                                else begin 
+                                    if (A[0] == 0) nextstate <=4'd3;
+                                    else nextstate <= 4'd2;
+                                end    
                              end   
                     4'd2   : begin
                             if (adder_done ==1) nextstate = 4'd3;
@@ -199,7 +202,7 @@ module montgomery(
                                     else nextstate <= 4'd8;
                               end
                     4'd9   :  begin
-                                    if (C[513] == 1)   nextstate <= 4'd7;
+                                    if (HTM2[513] == 0)   nextstate <= 4'd7;
                                     else nextstate <= 4'd0;
                               end
                                     
