@@ -12,10 +12,10 @@ module tb_montgomery();
     reg  [513:0] in_a;
     reg  [513:0] in_b;
     reg  [513:0] in_m;
-    wire [511:0] result;
+    wire [513:0] result;
     wire         done;
 
-    reg  [511:0] expected;
+    reg  [513:0] expected;
     reg          result_ok;
     
     //Instantiating montgomery module
@@ -46,24 +46,27 @@ module tb_montgomery();
         #`RESET_TIME
         
         // You can generate your own with test vector generator python script
-        //in_a     <= 514'h0ac854dd86a88ee6accefadf4e45af10a3a79e375950c80d43e69d08b5fe850abbd45a7fff952e98e1b90f667ad679a8ef87787575ffe3604bd0d6fcfb0023214;
-        //in_b     <= 514'h0f8ba931ef9df048c6ffe8d55b9992eb451ecccbc655bdaac49429ff67857d747ca5ae7cfcfcc2f38788ba36f4c98fee612fb5c7ed826a51f6e9ce8bbef662beb;
-        //in_m     <= 514'h0c74d7b58ad456f6b6c997b318836afceea0ac62dc83e6c96c40403723ef246a0d30968ef3f7579f0cab0621e4a6bed06c894d20aa809cf347c4377c4ec4cb409;
-       in_a     <= 512'd422335678912344321;
-       in_b     <= 512'd567897654328765678;
-       in_m     <= 512'd243440200464345627;
-       // expected <= 512'h3f869127d962ca1ee7a3e30025438f9a13e884e22346ad294bbb9d5c4491aa217feb11b6b8529c3db9f55d8641bf66b39586d7959545d8ff0379679228f637c3;
-        expected <= 512'h14;
+        //in_a     <= 512'hac854dd86a88ee6accefadf4e45af10a3a79e375950c80d43e69d08b5fe850abbd45a7fff952e98e1b90f667ad679a8ef87787575ffe3604bd0d6fcfb0023214;
+        //in_b     <= 512'hf8ba931ef9df048c6ffe8d55b9992eb451ecccbc655bdaac49429ff67857d747ca5ae7cfcfcc2f38788ba36f4c98fee612fb5c7ed826a51f6e9ce8bbef662beb;
+        //in_m     <= 512'hc74d7b58ad456f6b6c997b318836afceea0ac62dc83e6c96c40403723ef246a0d30968ef3f7579f0cab0621e4a6bed06c894d20aa809cf347c4377c4ec4cb409;
+        //expected <= 512'h3f869127d962ca1ee7a3e30025438f9a13e884e22346ad294bbb9d5c4491aa217feb11b6b8529c3db9f55d8641bf66b39586d7959545d8ff0379679228f637c3;
+    in_a     <= 514'h87b21d93a10f35511c8d56264a6f95f0245d8004e0d3557c7ec2b396b4ed3cabda34f88e0c8154e9ffab2761e626a720eef1da7ee31ce6c31fcdeaec38eb9589;
+        in_b     <= 514'h901702c94e8d7f3c733aafa46a6b43948148fd2f08761b134bc6815c3a69f4fc4ca4cbec55a2e1e70178549683bf79db5fec9631717e6ae69a5ea5c9eb2a118d;
+        in_m     <= 514'hf8f635bfae6507fc726853e48b8ff18f8037f58fbef63debba0381f2a7da936679f14a270b1129a730d905d283459a275b4dd75470965dfa6386b5321563997d;
+        expected     <= 514'hefbbb81aee8737730fcc1b52630ad7056a18df6a9b0c0f0744d2c0f0cc7ac28991b23733a539d8a06329f65394307f2b4f0a3e146227179be2d5ce9f71561b2;
+
+
+
         start<=1;
         #`CLK_PERIOD;
         start<=0;
         
         wait (done==1);
         
-//        $display("result calculated=%x", result);
-//        $display("result expected  =%x", expected);
-//        $display("error            =%x", expected-result);
-//        result_ok = (expected==result);
+        $display("result calculated=%x", result);
+        $display("result expected  =%x", expected);
+        $display("error            =%x", expected-result);
+        result_ok = (expected==result);
         #`CLK_PERIOD;   
 
         
