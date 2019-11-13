@@ -4,9 +4,9 @@ module montgomery(
     input          clk,
     input          resetn,
     input          start,
-    input  [511:0] in_a,
-    input  [511:0] in_b,
-    input  [511:0] in_m,
+    input  [513:0] in_a,
+    input  [513:0] in_b,
+    input  [513:0] in_m,
     output [511:0] result,  
     output         done
      );
@@ -21,6 +21,7 @@ module montgomery(
     wire [514:0] adder_result;
     
     reg [513:0] C,A,HTM; //HTM >> HoYa,Tejas,Mo
+    reg [516:0] HTM2;
     reg [9:0] ctr;  //counter
     
     reg shift,D; //D for done
@@ -82,7 +83,7 @@ module montgomery(
                                 C <= 514'b0;
                                 HTM <= 514'b0;
                                 A <= in_a;
-                                ctr <= 10'd3;
+                                ctr <= 10'd512;
                                 shift <= 1'b0;
                                 D  <= 1'b0;
                           end
@@ -91,6 +92,7 @@ module montgomery(
                                 if (ctr == 0) begin
                                                 nextstate = 4'd7;
                                                 HTM <= C;
+                                                HTM2 <= 517'd0;
                                               end  
                                 else begin
                                             if (A[0] == 0) begin
@@ -137,8 +139,14 @@ module montgomery(
                                   
                      4'd8: begin
                             adder_start <= 0;
-                            C <= adder_result;
-                            if (C[513] == 1) begin HTM <= C ; D <= 1'b1; end
+                            HTM2 <= adder_result;
+                            C    <= adder_result; 
+                           end
+                           
+                    4'd9:  begin        
+                            if (HTM2[516] == 1) begin            // if (C > M)  
+                                                HTM <= C ; 
+                                             end
                             else begin HTM <= HTM ; D <= 1'b1; end        
                            end 
                            
@@ -146,7 +154,7 @@ module montgomery(
                                     C <= 514'b0;
                                     HTM <= 514'b0;
                                     A <= in_a;
-                                    ctr <= 10'd4;
+                                    ctr <= 10'd3;
                                     shift <= 1'b0;
                                     D  <= 1'b0;
                           end
@@ -187,8 +195,12 @@ module montgomery(
                     4'd6   :  nextstate <= 4'd1; 
                     4'd7   :  nextstate <= 4'd8;
                     4'd8   :  begin
-                                    if (adder_done ==1) nextstate = 4'd0;
-                                    else nextstate = 4'd8;
+                                    if (adder_done ==1) nextstate <= 4'd9;
+                                    else nextstate <= 4'd8;
+                              end
+                    4'd9   :  begin
+                                    if (C[513] == 1)   nextstate <= 4'd7;
+                                    else nextstate <= 4'd0;
                               end
                                     
                     default: nextstate <= 4'd0;
