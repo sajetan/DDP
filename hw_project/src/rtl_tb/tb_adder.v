@@ -1,5 +1,4 @@
 `timescale 1ns / 1ps
-//testbench for adder.v
 
 `define RESET_TIME 25
 `define CLK_PERIOD 10
@@ -23,12 +22,12 @@ module tb_adder();
     // Instantiating adder
     mpadder dut (
         .clk      (clk     ),
-        .resetn   (resetn  ),
+        .rstn   (resetn  ),
         .start    (start   ),
         .subtract (subtract),
-        .in_a     (in_a    ),
-        .in_b     (in_b    ),
-        .result   (result  ),
+        .A     (in_a    ),
+        .B     (in_b    ),
+        .C   (result  ),
         .done     (done    ));
 
     // Generate Clock
@@ -140,6 +139,7 @@ module tb_adder();
     perform_sub(514'h329e3c39498f09ad105029d84a0cd39bfae260be1a2c18a9b6765a619e1f7114e3d6f85471846dca91071d6001a5c69db3fd36bada0499566a037125b70466b62,
                 514'h21bd2189a5b2de4b579ba4b0eeeb74645d6ab55875fcf441ccae3f63df9bd513aebaf0902c4e718e6d75354f4cc4927536318016eda7745db1c2d9688ddb90a54);
     expected  = 515'h10e11aafa3dc2b61b8b485275b215f379d77ab65a42f2467e9c81afdbe839c01351c07c44535fc3c2391e810b4e134287dcbb6a3ec5d24f8b84097bd2928d610e;
+    
     wait (done==1);
     result_ok = (expected==result);
     $display("result calculated=%x", result);
