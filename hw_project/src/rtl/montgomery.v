@@ -21,8 +21,8 @@ module montgomery(
     wire [514:0] adder_result;
     
     //reg [513:0] C,A,HTM, C_tmp; //HTM >> HoYa,Tejas,Mo
-    reg [513:0] HTM, C_tmp; //HTM >> HoYa,Tejas,Mo
-    reg [516:0] HTM2;
+    reg [513:0] HTM; //HTM >> HoYa,Tejas,Mo
+    reg [513:0] HTM2;
     reg [9:0] ctr;  //counter
     reg[1:0] HTM_signal;
     
@@ -150,7 +150,7 @@ module montgomery(
                                                 regA_en <= 0;
                                                 adder_start <= 1'b0;
                                                 adder_subtract <= 1'b0;
-                                                mux_sel_BM <= 1'b0;
+                                                mux_sel_BM <= 1'b1;
                                                 mux_sel_C <=1;
                                                 //HTM <= C;
                                                 //HTM2 <= 517'd0;
@@ -303,7 +303,7 @@ module montgomery(
                                   
                      4'd8: begin
                             adder_start <= 0;
-                            adder_subtract <= 1'b0;
+                            adder_subtract <= 1'b1;
                             //HTM2 <= adder_result;
                             mux_sel_C <= 0;
                             regC_en <= 1;
