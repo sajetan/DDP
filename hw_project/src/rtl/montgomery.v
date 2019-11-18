@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module montgomery(
+module montgomery_tst(
     input          clk,
     input          resetn,
     input          start,
@@ -44,7 +44,7 @@ module montgomery(
         begin
             if(rst)             regC_Q <= 514'd0; 
             else if (regC_en && regC_shift == 0)   regC_Q <= regC_D;
-            else if (regC_en && regC_shift) regC_Q <= regC_Q >> 1;
+            else if (regC_en && regC_shift) regC_Q <= regC_D >> 1;
         end
         
         assign adder_in_a = regC_Q;
@@ -75,14 +75,14 @@ module montgomery(
      //Instantiate an Adder
     
        
-        mpadder dut (
+        CLA dut (
         .clk      (clk     ),
         .rstn   (resetn  ),
         .start    (adder_start   ),
         .subtract (adder_subtract),
         .A     (adder_in_a    ),
         .B     (adder_in_b    ),
-        .C   (adder_result  ),
+        .result   (adder_result  ),
         .done     (adder_done    ));
         
         
@@ -228,7 +228,7 @@ module montgomery(
                                         HTM_signal <= 2'b00;
                                         ctr_dec <= 1'b0;
                                         D  <= 1'b0;
-                                        regC_shift <= 1'b0;
+                                        regC_shift <= 1'b1;
                                         regC_en <= 1'b1;
                                         mux_sel_C <=1;
                                         regA_shift <= 1'b0;
@@ -247,7 +247,7 @@ module montgomery(
                                 adder_subtract <= 1'b0;
                                 mux_sel_C <= 0;
                                 regC_en <= 1;
-                                regC_shift <=0;
+                                regC_shift <=1;
                                 regA_shift <=0;
                                 ctr_dec <= 0;
                                 //HTM <= 514'd0;
@@ -258,35 +258,21 @@ module montgomery(
 //                                C <= adder_result;
                           end
                      4'd5: begin
-                                     regC_shift <= 1'b1;
+                                     regC_shift <= 1'b0;
                                      regC_en <= 1;
                                      mux_sel_C <= 1;  
-                                     regA_shift <=0;   
-                                     ctr_dec <= 0;     
+                                     regA_shift <=1;   
+                                     ctr_dec <= 1;     
                                      //HTM <= 514'd0;
                                      HTM_signal <= 2'b00;  
                                      D  <= 1'b0;  
-                                     regA_en <= 0;  
+                                     regA_en <= 1;  
                                      adder_start <= 1'b0;  
                                      adder_subtract <= 1'b0;   
                                      mux_sel_BM <= 1'b0;                
                                 end 
-                     4'd6: begin
-                                regC_shift <= 1'b0;  // wait for one clk cycle waiting for division to be carried out  
-                                regC_en <= 1;
-                                regA_en <=1;
-                                regA_shift <=1;
-                                ctr_dec <= 1;
-                                //HTM <= 514'd0;
-                                HTM_signal <= 2'b00;
-                                D  <= 1'b0;
-                                mux_sel_C <= 1;
-                                adder_start <= 1'b0;
-                                adder_subtract <= 1'b0;
-                                mux_sel_BM <= 1'b0;
-                           end
 
-                     4'd7: begin
+                     4'd6: begin
                             adder_start <= 1;
                             adder_subtract <=1;
                             mux_sel_BM <= 1;  // to select M
@@ -301,7 +287,7 @@ module montgomery(
                             regA_en <= 0;
                            end
                                   
-                     4'd8: begin
+                     4'd7: begin
                             adder_start <= 0;
                             adder_subtract <= 1'b1;
                             //HTM2 <= adder_result;
@@ -318,7 +304,7 @@ module montgomery(
                             //C    <= adder_result; 
                            end
                            
-                    4'd9:  begin  
+                    4'd8:  begin  
                             ctr_dec <= 1'b0;      
                             if (HTM2[513] == 0) begin            // if (C > M)  
                                //HTM <= regC_Q ;
@@ -380,7 +366,7 @@ module montgomery(
                             nextstate <= 4'd0;
                         end
                     4'd1   : begin
-                                if (ctr == 0) nextstate <= 4'd7;
+                                if (ctr == 0) nextstate <= 4'd6;
                                 else begin 
                                 //nextstate <= 4'd1;
                                     if (regA[0] == 0) nextstate <=4'd3;
@@ -399,15 +385,14 @@ module montgomery(
                                     if (adder_done == 1) nextstate <= 4'd5;
                                     else nextstate <= 4'd4;
                               end    
-                    4'd5   :  nextstate <= 4'd6;     
-                    4'd6   :  nextstate <= 4'd1; 
-                    4'd7   :  nextstate <= 4'd8;
-                    4'd8   :  begin
-                                    if (adder_done ==1) nextstate <= 4'd9;
-                                    else nextstate <= 4'd8;
+                    4'd5   :  nextstate <= 4'd1;     
+                    4'd6   :  nextstate <= 4'd7;
+                    4'd7   :  begin
+                                    if (adder_done ==1) nextstate <= 4'd8;
+                                    else nextstate <= 4'd7;
                               end
-                    4'd9   :  begin
-                                    if (HTM2[513] == 0)   nextstate <= 4'd7;
+                    4'd8   :  begin
+                                    if (HTM2[513] == 0)   nextstate <= 4'd6;
                                     else nextstate <= 4'd0;
                               end
                                     
