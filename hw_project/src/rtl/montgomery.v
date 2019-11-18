@@ -22,7 +22,6 @@ module montgomery_tst(
     
     //reg [513:0] C,A,HTM, C_tmp; //HTM >> HoYa,Tejas,Mo
     reg [513:0] HTM; //HTM >> HoYa,Tejas,Mo
-    reg [513:0] HTM2;
     reg [9:0] ctr;  //counter
     reg[1:0] HTM_signal;
     
@@ -45,9 +44,10 @@ module montgomery_tst(
             if(rst)             regC_Q <= 514'd0; 
             else if (regC_en && regC_shift == 0)   regC_Q <= regC_D;
             else if (regC_en && regC_shift) regC_Q <= regC_D >> 1;
+            else regC_Q <= regC_Q;
         end
         
-        assign adder_in_a = regC_Q;
+        assign adder_in_a = regC_D;
         
         
         // mux  C & adder_result
@@ -92,8 +92,7 @@ module montgomery_tst(
         begin
                 if (rst == 1) ctr <= 10'd512;
                 if (ctr_dec == 1) ctr <= ctr-1;
-                HTM2 <= adder_result;
-                            if (HTM_signal == 2'b00) HTM <= 514'b0;
+                if (HTM_signal == 2'b00) HTM <= adder_result;
                 else if (HTM_signal == 2'b01) HTM <= regC_Q;
                 else if (HTM_signal ==2'b10 ) HTM <= HTM ;
                 else HTM <= 514'b0;
@@ -109,11 +108,11 @@ module montgomery_tst(
 
      // state machine registers description
         
-            reg [3:0] state, nextstate;
+            reg [2:0] state, nextstate;
         
             always @(posedge clk)
             begin
-                if(rst)        state <= 4'd0;
+                if(rst)        state <= 3'd0;
                 else        state <= nextstate;
             end
         
@@ -122,7 +121,7 @@ module montgomery_tst(
             begin
                 case(state)
                     
-                    4'd0: begin
+                    3'd0: begin
 
                                 mux_sel_BM <= 1'b0;   // mux_out = in_b
                                 regC_shift <= 1'b0;
@@ -137,12 +136,12 @@ module montgomery_tst(
                                 mux_sel_C <=1;
                           end
                      
-                     4'd1: begin
+                     3'd1: begin
                                 if (ctr == 0) begin
                                                 //nextstate = 4'd7;
                                                 ctr_dec <= 0;
                                                 //HTM <= 514'd0;
-                                                HTM_signal <= 2'b00;
+                                                HTM_signal <= 2'b01;
                                                 D  <= 1'b0;
                                                 regC_shift <= 1'b0;
                                                 regC_en <= 1'b1;
@@ -175,7 +174,7 @@ module montgomery_tst(
                                                     adder_start <= 1;
                                                     adder_subtract <= 0;
                                                     mux_sel_BM <= 0;  // to select B
-                                                    mux_sel_C <= 0;
+                                                    mux_sel_C <= 1;
                                                     regC_en <= 1;
                                                     regC_shift <=0;
                                                     regA_shift <=0;
@@ -188,37 +187,25 @@ module montgomery_tst(
                                 end
                             end
 
-                    4'd2 : begin
-                                 adder_start <= 0;
-                                 adder_subtract <= 1'b0;
-                                 mux_sel_C <= 0;
-                                 regC_en <= 1;
-                                 regC_shift <=0;
-                                 regA_shift <=0;
-                                 ctr_dec <= 0;
-                                 //HTM <= 514'd0;
-                                 HTM_signal <= 2'b00;
-                                 D  <= 1'b0;
-                                 regA_en <= 0;
-                                 mux_sel_BM <= 1'b0;
-//                                 C <= adder_result;
-                           end     
+                        
                            
-                    4'd3: begin 
-                                if (regC_Q[0] == 1) 
+                    3'd2: begin 
+                                if (regC_D[0] == 1) 
                                   begin
                                                 adder_start <= 1;
                                                 adder_subtract <=0;
                                                 mux_sel_BM <= 1;  // to select M
-                                                mux_sel_C <= 1;
+                                                
+                                                if (regA[0] == 1 ) mux_sel_C <= 0;
+                                                else mux_sel_C <= 1;
                                                 regC_en <= 1;
                                                 regC_shift <=0;
-                                                regA_shift <=0;
-                                                ctr_dec <= 0;
+                                                regA_shift <=1;
+                                                ctr_dec <= 1;
                                                 //HTM <= 514'd0;
                                                 HTM_signal <= 2'b00;
                                                 D  <= 1'b0;
-                                                regA_en <= 0;
+                                                regA_en <= 1;
                                    end
                                    
                                 else begin 
@@ -226,13 +213,14 @@ module montgomery_tst(
                                         adder_subtract <=0;
                                         //HTM <= 514'd0;
                                         HTM_signal <= 2'b00;
-                                        ctr_dec <= 1'b0;
+                                        ctr_dec <= 1'b1;
                                         D  <= 1'b0;
                                         regC_shift <= 1'b1;
                                         regC_en <= 1'b1;
-                                        mux_sel_C <=1;
-                                        regA_shift <= 1'b0;
-                                        regA_en <= 0;
+                                        if (regA[0] == 1 ) mux_sel_C <= 0;
+                                        else mux_sel_C <= 1;                                        
+                                        regA_shift <= 1'b1;
+                                        regA_en <= 1;
                                         mux_sel_BM <= 1'b0;
                                         //regC_shift <= 1;
                                         //regC_en <= 1;
@@ -242,7 +230,7 @@ module montgomery_tst(
                                      end   
                                                 
                            end
-                    4'd4: begin
+                    3'd3: begin
                                 adder_start <= 0;
                                 adder_subtract <= 1'b0;
                                 mux_sel_C <= 0;
@@ -257,22 +245,8 @@ module montgomery_tst(
                                 mux_sel_BM <= 1'b1;
 //                                C <= adder_result;
                           end
-                     4'd5: begin
-                                     regC_shift <= 1'b0;
-                                     regC_en <= 1;
-                                     mux_sel_C <= 1;  
-                                     regA_shift <=1;   
-                                     ctr_dec <= 1;     
-                                     //HTM <= 514'd0;
-                                     HTM_signal <= 2'b00;  
-                                     D  <= 1'b0;  
-                                     regA_en <= 1;  
-                                     adder_start <= 1'b0;  
-                                     adder_subtract <= 1'b0;   
-                                     mux_sel_BM <= 1'b0;                
-                                end 
 
-                     4'd6: begin
+                     3'd4: begin
                             adder_start <= 1;
                             adder_subtract <=1;
                             mux_sel_BM <= 1;  // to select M
@@ -287,36 +261,21 @@ module montgomery_tst(
                             regA_en <= 0;
                            end
                                   
-                     4'd7: begin
-                            adder_start <= 0;
-                            adder_subtract <= 1'b1;
-                            //HTM2 <= adder_result;
-                            mux_sel_C <= 0;
-                            regC_en <= 1;
-                            regC_shift <= 0;
-                            ctr_dec <= 0;
-                            //HTM <= HTM;
-                            HTM_signal <= 2'b10;
-                            D  <= 1'b0;
-                            regA_shift <= 1'b0;
-                            regA_en <= 0;
-                            mux_sel_BM <= 1'b1;
-                            //C    <= adder_result; 
-                           end
+
                            
-                    4'd8:  begin  
+                    3'd5:  begin  
                             ctr_dec <= 1'b0;      
-                            if (HTM2[513] == 0) begin            // if (C > M)  
+                            if (adder_result[513] == 0) begin            // if (C > M)  
                                //HTM <= regC_Q ;
-                               HTM_signal <= 2'b01; 
+                               HTM_signal <= 2'b00; 
                                D  <= 1'b0;
                                regC_shift <= 1'b0;
                                regC_en <= 1'b1;
-                               mux_sel_C <= 1;
+                               mux_sel_C <= 0;
                                regA_shift <= 1'b0;
                                regA_en <= 0;
                                adder_start <= 0;
-                               adder_subtract <= 1'b0;
+                               adder_subtract <= 1'b1;
                                mux_sel_BM <= 1'b1;
                             end
                             else begin 
@@ -329,7 +288,7 @@ module montgomery_tst(
                                      regA_shift <= 1'b0;
                                      regA_en <= 0;
                                      adder_start <= 0;
-                                     adder_subtract <= 1'b0;
+                                     adder_subtract <= 1'b1;
                                      mux_sel_BM <= 1'b1;
                                  end        
                            end 
@@ -359,44 +318,34 @@ module montgomery_tst(
             always @(*)
             begin
                 case(state)
-                    4'd0: begin
+                    3'd0: begin
                         if(start==1)
-                            nextstate <= 4'd1;
+                            nextstate <= 3'd1;
                         else
-                            nextstate <= 4'd0;
+                            nextstate <= 3'd0;
                         end
-                    4'd1   : begin
-                                if (ctr == 0) nextstate <= 4'd6;
+                    3'd1   : begin
+                                if (ctr == 0) nextstate <= 3'd4;
                                 else begin 
-                                //nextstate <= 4'd1;
-                                    if (regA[0] == 0) nextstate <=4'd3;
-                                    else nextstate <= 4'd2;
+                                 nextstate <= 3'd2;
                                 end    
                              end   
-                    4'd2   : begin
-                            if (adder_done ==1) nextstate <= 4'd3;
-                            else nextstate <= 4'd2;
-                        end
-                    4'd3   :  begin
-                                    if (regC_Q[0] == 1) nextstate <=4'd4;
-                                    else nextstate <= 4'd5;
+
+                    3'd2   :  begin
+                                    if (regC_D[0] == 1) nextstate <=3'd3;
+                                    else nextstate <= 3'd1;
                               end
-                    4'd4   :  begin
-                                    if (adder_done == 1) nextstate <= 4'd5;
-                                    else nextstate <= 4'd4;
+                    3'd3   :  begin
+                                    nextstate <= 3'd1;
                               end    
-                    4'd5   :  nextstate <= 4'd1;     
-                    4'd6   :  nextstate <= 4'd7;
-                    4'd7   :  begin
-                                    if (adder_done ==1) nextstate <= 4'd8;
-                                    else nextstate <= 4'd7;
-                              end
-                    4'd8   :  begin
-                                    if (HTM2[513] == 0)   nextstate <= 4'd6;
-                                    else nextstate <= 4'd0;
+                    3'd4   :  nextstate <= 3'd5;
+
+                    3'd5   :  begin
+                                    if (adder_result[513] == 0)   nextstate <= 3'd4;
+                                    else nextstate <= 3'd0;
                               end
                                     
-                    default: nextstate <= 4'd0;
+                    default: nextstate <= 3'd0;
                 endcase
             end
         
