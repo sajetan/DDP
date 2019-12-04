@@ -100,5 +100,19 @@ void montMulOpt(uint32_t *a, uint32_t *b, uint32_t *n, uint32_t *n_prime, uint32
 
 }
 
+uint32_t mont_exp(uint32_t *expres, uint32_t *message, uint32_t *n, uint32_t *n_prime, uint32_t *rmodn,uint32_t *r2modn, uint32_t size){
+	uint32_t temp_res [32]={0x0};
+	montMulOpt(message,r2modn,n,n_prime,temp_res, size);
+
+	xil_printf("tres =");
+	print_num(temp_res, 32);
+	xil_printf("\n\r");
+
+	return temp_res;
+
+
+
+}
+
 #endif
 
