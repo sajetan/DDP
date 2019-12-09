@@ -61,6 +61,8 @@ uint32_t R2_1024[32] = {0x078119bc, 0x9b02a75f, 0x9aa18d79, 0x5eb22bdd, 0x8f98b6
 
 // One
 uint32_t One[32] = {1,0};
+
+uint32_t size = 32;
 uint32_t expres[32]={0};
 
 #endif /* SRC_TEST_H_ */
