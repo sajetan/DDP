@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define TX_SIZE 512
+#define TX_SIZE 1024
 
 //Divide by four to get the 32-bit offsets
 #define MM2S_DMACR_OFFSET   0x00 // (0x00/4)
