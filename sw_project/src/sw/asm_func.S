@@ -139,54 +139,105 @@ basic_multiply:
 	bx lr
 .endfunc
 
+@Optimised nested loop for squared multiplication
+
+.text
+
+.global mult_sqloop
+.func mult_sqloop, mult_sqloop
+.type mult_sqloop, %function
+
+mult_sqloop:
+	push {r4-r12}				@push original value from registors to memory
+	mov r4 , #0					@ r4 = i = size         //r0 r1 r5
+
+outerloopsq:
+	cmp r4, r0					@if i = 0 ??
+	beq outerloopDonesq
+
+	mov r12 , #0                @ r14 = C = 0
+	mov r5 , #1					@ j = size = r5   for inner loop
+    ldr r2, [r1, r4, lsl #2]				@r8 = b[i]
+    ldr r11, [r1, r4, lsl #4]
+   @ umaal r2,11,r2,r2
+
+innerloopsq:
+	cmp r5, r0                  @ r5 =j = 0
+	beq innerloopDonesq
+	ldr r2, [r1, r4, lsl #2]
+
+	ldr r7, [r1, r5, lsl #2]				@ r7=a[j]
+
+	add r6, r4, r5 			 	@ r6=i+j
+    add r5 ,r5, #1				@ j = j+1
+	ldr r10, [r3, r6, lsl #2]				@r9 = t[i+j]
+
+	umaal r10, r12, r7,r8       @ r10, r11 = r7*r8 = a[j]*b[i]+t[i+j]
+
+
+	str r10, [r3, r6, lsl #2]				@t[i+j]=r10
+
+@	add r5 ,r5, #1				@ j = j+1
+
+
+
+	b innerloopsq
+
+innerloopDonesq:
+	add r9, r4, r0
+	add r4,r4, #1 				@ i=i+1
+	//add r9, r3, r9, lsl #2		@ t[i+size]
+	str r12, [r3, r9, lsl #2]				@ t[i+size]=C
+	@add r4,r4, #1 				@ i=i+1
+	b outerloopsq
+outerloopDonesq:
+	pop {r4-r12}     			@take back the original value
+
+	bx lr 						@go back
+.endfunc
+
+
+
+
+
+
+
+
 
 
 @Optimised nested loop for multiplication
 
 .text
 
-.global for1_opt
-.func for1_opt, for1_opt
-.type for1_opt, %function
+.global mult_loop
+.func mult_loop, mult_loop
+.type mult_loop, %function
 
-for1_opt:
+mult_loop:
 	push {r4-r12}				@push original value from registors to memory
 	mov r4 , #0					@ r4 = i = size         //r0 r1 r5
+
 outerloop:
 	cmp r4, r0					@if i = 0 ??
 	beq outerloopDone
 	mov r12 , #0                @ r14 = C = 0
 	mov r5 , #0					@ j = size = r5   for inner loop
-
+    ldr r8, [r2, r4, lsl #2]				@r8 = b[i]
 innerloop:
 	cmp r5, r0                  @ r5 =j = 0
 	beq innerloopDone
-	
-//	add r7, r1, r5, lsl #2      @ a[j]
-//	add r8, r2, r4, lsl #2		@ b[i]
 	ldr r7, [r1, r5, lsl #2]				@ r7=a[j]
-	ldr r8, [r2, r4, lsl #2]				@r8 = b[i]
 	add r6, r4, r5 			 	@ r6=i+j
-
-//	add r6, r3, r6, lsl #2      @ t[i+j]
-
+    add r5 ,r5, #1				@ j = j+1
 	ldr r10, [r3, r6, lsl #2]				@r9 = t[i+j]
-	mov r11, #0
-
-	umlal r10, r11, r7,r8       @ r10, r11 = r7*r8 = a[j]*b[i]+t[i+j]
-	//adds r10 , r10,r9			@r10 = r10+r9 == a[j]+b[i]+t[i+j] only LSB
-	//adc  r11 ,r11,#0			@r11 = r11+0+Carry
-	adds r10 , r10, r12			@r10 = r10+C
-	adc  r11 ,r11 ,#0			@r11 = r11+0+Carry
+	umaal r10, r12, r7,r8       @ r10, r11 = r7*r8 = a[j]*b[i]+t[i+j]
 	str r10, [r3, r6, lsl #2]				@t[i+j]=r10
-	mov r12, r11				@C=r11
-	add r5 ,r5, #1				@ j = j+1
 	b innerloop
+
 innerloopDone:
 	add r9, r4, r0
-	//add r9, r3, r9, lsl #2		@ t[i+size]
-	str r12, [r3, r9, lsl #2]				@ t[i+size]=C
 	add r4,r4, #1 				@ i=i+1
+	str r12, [r3, r9, lsl #2]				@ t[i+size]=C
 	b outerloop
 outerloopDone:
 	pop {r4-r12}     			@take back the original value
@@ -198,20 +249,21 @@ outerloopDone:
 @Optimised nested loop for reduction and carry addition
 .text
 
-.global for2_opt
-.func for2_opt, for2_opt
-.type for2_opt, %function
+.global red_loop
+.func red_loop, red_loop
+.type red_loop, %function
 
-for2_opt:
+red_loop:
 	push {r4-r12}				@ push original value from registors to memory
 	mov r4 , #0					@r4 = i = size         //r0 r1 r5
+
 outerloop2:
 	cmp r4, r0					@if i = 0 ??
+	mov r5 , #0
 	beq outerloopDone2
 	mov r12 , #0                @ r12 = C = 0
 	ldr r7, [r3, r4, lsl #2]
 	mul r6, r7, r1				@r6 = z= n_prime*t[i]
-	mov r5 , #0					@ j = size = r5   for inner loop
 
 innerloop2:
 	cmp r5, r0                  @ r5 =j = 0
@@ -219,14 +271,10 @@ innerloop2:
 	beq add_fun
 	ldr r9, [r2, r5, lsl #2] 	@ load r10=n[j]
 	add r8, r4, r5 			 	@ r8=i+j
-	ldr r10, [r3, r8, lsl #2]	@r9 = t[i+j]
-	mov r11, #0
-	umlal r10, r11, r6,r9       @r10, r11 = r6*r10 = z*n[j]
-	adds r10 , r10, r12			@r10 = r10+C
-	adc  r11 ,r11 ,#0			@r11 = r11+0+Carry
-	str r10, [r3, r8, lsl #2]				@t[i+j]=r10
-	mov r12, r11				@C=r11
 	add r5 ,r5, #1				@ j = j+1
+	ldr r10, [r3, r8, lsl #2]	@r9 = t[i+j]
+	umaal r10, r12, r6,r9       @r10, r11 = r6*r10 = z*n[j]
+	str r10, [r3, r8, lsl #2]				@t[i+j]=r10
 	b innerloop2
 
 add_fun:
@@ -235,9 +283,10 @@ add_fun:
 	ldr r9, [r3, r7, lsl #2]
 	adds r9, r9, r12
 	str r9, [r3, r7, lsl #2]
+	add r7, r7, #1
 	mov r12,#0
 	adc r12, r12, #0
-	add r7, r7, #1
+
 	b add_fun
 add_funDone:
 	add r4,r4, #1 				@ i=i+1

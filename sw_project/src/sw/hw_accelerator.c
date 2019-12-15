@@ -40,7 +40,9 @@ void example_HW_accelerator(void)
 
 START_TIMING
 	send_cmd_to_hw(CMD_READ);
+	xil_printf("Sending command\n\r");
 	send_data_to_hw(src);
+	xil_printf("Sending data now will wait for done\n\r");
 	while(!is_done());
 STOP_TIMING
 

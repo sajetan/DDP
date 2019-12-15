@@ -32,9 +32,12 @@ uint32_t opt_basic_add(uint32_t a, uint32_t b,uint32_t carry);
 uint32_t opt_multiply( uint32_t a, uint32_t b, uint32_t i, uint32_t *t, uint32_t c);
 uint32_t basic_multiply( uint32_t a, uint32_t b);
 
+//multiplication sq loop
+uint32_t mult_sqloop(uint32_t size, uint32_t *a, uint32_t *b, uint32_t *t);
+
 //multiplication loop
-uint32_t for1_opt(uint32_t size, uint32_t *a, uint32_t *b, uint32_t *t);
+uint32_t mult_loop(uint32_t size, uint32_t *a, uint32_t *b, uint32_t *t);
 //reduction+carry propogation loop
-uint32_t for2_opt(uint32_t size, uint32_t n_prime_zero, uint32_t *n, uint32_t *t);
+uint32_t red_loop(uint32_t size, uint32_t n_prime_zero, uint32_t *n, uint32_t *t);
 
 #endif /* ASM_FUNC_H_ */
