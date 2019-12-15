@@ -1,17 +1,8 @@
 `timescale 1ns / 1ps
 
-// TX_SIZE is defined in params.vh
-// It is set to 1024 for 1024-bit wide data transfers between Arm and FPGA
-// If desired, the data width can be set to 512-bit. 
-// It saves a bit: 300 LUTs, and 1000 registers, ...
-// For changing the transfer width, first you have to modify params.vh.
-// Then, you have to execute the following command: source ./tcl/configure.tcl
-// Finally, adapt the C code for that data length.
-// If you are not sure how to do it, please call a TA.
-`include "params.vh"
-
-module rsa_wrapper 
-(
+module rsa_wrapper #(
+    parameter TX_SIZE = 1024
+) (
     // The clock and active low reset
     input                clk,
     input                resetn,

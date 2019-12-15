@@ -14,8 +14,8 @@ module tb_rsa_wrapper();
     reg           resetn;
     reg  [  31:0] arm_to_fpga_cmd;
     reg           arm_to_fpga_cmd_valid;
-    wire          arm_to_fpga_done;
-    reg           arm_to_fpga_done_read;
+    wire          fpga_to_arm_done;
+    reg           fpga_to_arm_done_read;
 
     reg           arm_to_fpga_data_valid;
     wire          arm_to_fpga_data_ready;
@@ -36,8 +36,8 @@ module tb_rsa_wrapper();
 
         .arm_to_fpga_cmd        (arm_to_fpga_cmd        ),
         .arm_to_fpga_cmd_valid  (arm_to_fpga_cmd_valid  ),
-        .arm_to_fpga_done       (arm_to_fpga_done       ),
-        .arm_to_fpga_done_read  (arm_to_fpga_done_read  ),
+        .fpga_to_arm_done       (fpga_to_arm_done       ),
+        .fpga_to_arm_done_read  (fpga_to_arm_done_read  ),
 
         .arm_to_fpga_data_valid (arm_to_fpga_data_valid ),
         .arm_to_fpga_data_ready (arm_to_fpga_data_ready ), 
@@ -66,7 +66,7 @@ module tb_rsa_wrapper();
     initial begin
         arm_to_fpga_cmd         = 0;
         arm_to_fpga_cmd_valid   = 0;
-        arm_to_fpga_done_read   = 0;
+        fpga_to_arm_done_read   = 0;
         arm_to_fpga_data_valid  = 0;
         arm_to_fpga_data        = 0;
         fpga_to_arm_data_ready  = 0;
@@ -119,12 +119,12 @@ module tb_rsa_wrapper();
     task waitdone;
     begin
         // Wait for accelerator's done
-        wait(arm_to_fpga_done == 1'b1);
+        wait(fpga_to_arm_done == 1'b1);
         // Signal that is is read
-        arm_to_fpga_done_read <= 1'b1;
+        fpga_to_arm_done_read <= 1'b1;
         #`CLK_PERIOD;
         // Desassert the signal after one cycle
-        arm_to_fpga_done_read <= 1'b0;
+        fpga_to_arm_done_read <= 1'b0;
         #`CLK_PERIOD;
     end 
     endtask
