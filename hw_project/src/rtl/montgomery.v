@@ -10,7 +10,7 @@ module montgomery(
     input [513:0]  add_in_b,
     input          x,    // to use montgomery ass adder.
     input       xsub,
-    output [511:0] result,  
+    output [512:0] result,  
     output         done
      );
  
@@ -24,7 +24,7 @@ module montgomery(
     
     //reg [513:0] C,A,HTM, C_tmp; //HTM >> HoYa,Tejas,Mo
     reg [513:0] HTM; //HTM >> HoYa,Tejas,Mo
-    reg [513:0] HTM2;
+    reg [514:0] HTM2;
     reg [9:0] ctr;  //counter
     reg[1:0] HTM_signal;
     reg ctr512;
@@ -49,6 +49,7 @@ module montgomery(
             else if (regC_en && regC_shift == 0)   regC_Q <= regC_D;
             else if (regC_en && regC_shift) regC_Q <= regC_D >> 1;
             else if (regC_en ==0 && regC_shift == 0) regC_Q <= regC_Q;
+            else if (regC_en ==0 && regC_shift ==1) regC_Q <= HTM2;
         end
         
         assign adder_in_a = mux_sel_adder_in_a ? regC_Q : add_in_a;
@@ -78,7 +79,6 @@ module montgomery(
          
      //Instantiate an Adder
     
-       
         mpadder dut (
         .clk      (clk     ),
         .rstn   (resetn  ),
@@ -337,6 +337,7 @@ module montgomery(
                             regA_shift <= 1'b0;
                             regA_en <= 0;
                             ctr512 <=1'b0;
+                          
                            end
                                   
                      4'd7: begin
@@ -345,7 +346,7 @@ module montgomery(
                             adder_subtract <= 1'b1;
                             //HTM2 <= adder_result;
                             mux_sel_C <= 0;
-                            regC_en <= 1;
+                            regC_en <= 0;
                             regC_shift <= 0;
                             ctr_dec <= 0;
                             //HTM <= HTM;
@@ -361,17 +362,17 @@ module montgomery(
                     4'd8:  begin  
                             mux_sel_adder_in_a <= 1'b1;
                             ctr_dec <= 1'b0;      
-                            if (HTM2[513] == 0) begin            // if (C > M)  
+                            if (HTM2[514] == 0) begin            // if (C > M)  
                                //HTM <= regC_Q ;
                                HTM_signal <= 2'b01; 
                                D  <= 1'b0;
-                               regC_shift <= 1'b0;
-                               regC_en <= 1'b1;
-                               mux_sel_C <= 1;
+                               regC_shift <= 1'b1;
+                               regC_en <= 1'b0;
+                               mux_sel_C <= 0;
                                regA_shift <= 1'b0;
                                regA_en <= 0;
                                adder_start <= 0;
-                               adder_subtract <= 1'b0;
+                               adder_subtract <= 1'b1;
                                mux_sel_BM <= 2'b11;
                                ctr512 <=1'b0;
                                
@@ -509,7 +510,7 @@ module montgomery(
                                     else nextstate <= 4'd7;
                               end
                     4'd8   :  begin
-                                    if (HTM2[513] == 0)   nextstate <= 4'd6;
+                                    if (HTM2[514] == 0)   nextstate <= 4'd6;
                                     else nextstate <= 4'd0;
                               end
                     4'd9 : nextstate <= 4'd10;
@@ -520,7 +521,7 @@ module montgomery(
             end
         
 
- assign result = HTM [511:0];
+ assign result = HTM [512:0];
  assign done = D ;
           
     

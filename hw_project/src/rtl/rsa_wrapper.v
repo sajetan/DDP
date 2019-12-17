@@ -31,9 +31,10 @@ wire [511:0] dp,p,R2p,Rp;
 reg RSA_start;
 wire  RSA_done;
 
+    reg resetn_mont;
     //Instantiating montgomery module
     exp_512 expon ( .clk    (clk    ),
-                                    .resetn (resetn ),
+                                    .resetn (resetn && resetn_mont),
                                     .start  (RSA_start  ),
                                     .C (RSA_Cipher),
                                     .E   (dp  ),
@@ -47,15 +48,16 @@ wire  RSA_done;
 
     /// - State Machine Parameters
 
-    localparam STATE_BITS           = 3;    
-    localparam STATE_WAIT_FOR_CMD   =      3'h0;  
-    localparam STATE_READ_DATA_Cipher =    3'h1;
-    localparam STATE_READ_DATA_pdp      =   3'h2;
-    localparam STATE_READ_DATA_R2pRp    = 3'h3;
-    localparam STATE_COMPUTE        =      3'h4;
-    localparam STATE_COMPUTE_WAIT   =      3'h5;
-    localparam STATE_WRITE_DATA     =      3'h6;
-    localparam STATE_ASSERT_DONE    =      3'h7;
+    localparam STATE_BITS           = 4;    
+    localparam STATE_WAIT_FOR_CMD   =      4'h0;  
+    localparam STATE_READ_DATA_Cipher =    4'h1;
+    localparam STATE_READ_DATA_pdp      =   4'h2;
+    localparam STATE_READ_DATA_R2pRp    = 4'h3;
+    localparam STATE_COMPUTE        =      4'h4;
+    localparam STATE_COMPUTE_WAIT   =      4'h5;
+    localparam STATE_WRITE_DATA     =      4'h6;
+    localparam STATE_ASSERT_DONE    =      4'h7;
+    localparam STATE_reset          =      4'h8;
     
 
     reg [STATE_BITS-1:0] r_state;
@@ -112,7 +114,10 @@ wire  RSA_done;
                     else next_state <= STATE_COMPUTE_WAIT;                    
 
                 STATE_WRITE_DATA:
-                    next_state <= (fpga_to_arm_data_ready) ? STATE_ASSERT_DONE : r_state;
+                    next_state <= (fpga_to_arm_data_ready) ? STATE_reset : r_state;
+                    
+                STATE_reset:
+                    next_state <= STATE_ASSERT_DONE;
 
                 STATE_ASSERT_DONE:
                     next_state <= (fpga_to_arm_done_read) ? STATE_WAIT_FOR_CMD : r_state;
@@ -175,13 +180,19 @@ wire  RSA_done;
                     // Bitwise-XOR the most signficant 32-bits with 0xDEADBEEF
                     //core_data <= {core_data[TX_SIZE-1:TX_SIZE-32]^32'hDEADBEEF, core_data[TX_SIZE-33:0]};
                     RSA_start <= 1'b1;
+                   // RSA_result <= {core_data[TX_SIZE-1:TX_SIZE-32]^32'hDEADBEEF, core_data[TX_SIZE-33:0]};
                 end
                 
+                STATE_reset: begin
+                    resetn_mont <=1'd0;
+                end
+
                 default: begin
                 Cipher <=Cipher;
                 pdp <=pdp;
                 R2pRp <=R2pRp;
-                RSA_start <= RSA_start;
+                RSA_start <= 1'd0;
+                resetn_mont <= 1'd1;
                 end
                 
             endcase
@@ -189,6 +200,7 @@ wire  RSA_done;
     end
     
     assign fpga_to_arm_data[1023:512]       = RSA_result;
+    assign fpga_to_arm_data[511:0]       = 512'd0;
 
     ////////////// - Valid signals for notifying that the computation is done
 
@@ -212,6 +224,7 @@ wire  RSA_done;
     always @(posedge(clk))
     begin        
         r_fpga_to_arm_done <= (r_state==STATE_ASSERT_DONE);
+       // if (fpga_to_arm_data_valid && fpga_to_arm_data_ready)  r_fpga_to_arm_done <= 1'b1;
     end
 
     assign fpga_to_arm_done = r_fpga_to_arm_done;
@@ -221,10 +234,9 @@ wire  RSA_done;
     // The four LEDs on the board can be used as debug signals.
     // Here they are used to check the state transition.
 
-    assign leds             = {r_state,RSA_done};
+    assign leds             = {r_state};
 
 endmodule
-
 
 
 

@@ -25,7 +25,7 @@ reg mux_sel_A,mux_sel_C;  //mux for mon. inputs
 reg [1:0] mux_sel_mont_2,mux_sel_mont_1;  
 wire mont_done;    
 wire [514:0] adder_result;
-wire [511:0] mont_result;
+wire [512:0] mont_result;
 wire [513:0] mont_in_a,mont_in_b,mont_in_m,add_in_a,add_in_b;
 reg x,xsub;   
 reg mux_sel_add_in_b;
@@ -66,8 +66,8 @@ assign regA_D = mux_sel_A ? R : mont_result;
 
 //reg C~        
 reg          regC_en;
-wire [511:0] regC_D;
-reg  [511:0] regC_Q;
+wire [512:0] regC_D;
+reg  [512:0] regC_Q;
 always @(posedge clk)
 begin
     if(rst)             regC_Q <= 512'd0; 
@@ -119,10 +119,14 @@ reg ctr_dec;  // ctr_dec = 1 >>> decrement the counter by 1
         begin 
             ctr <= 10'd512;
             //ctr_start <=1'd0;
+            regDone <=1'd0;
         end
+        else
+        begin
         if (ctr_dec == 1) ctr <= ctr-1;
-         if (D == 1) regDone <= 1'b1;
-         else regDone <= regDone;
+        if (D == 1) regDone <= 1'b1;
+        else regDone <= regDone;
+        end
 
    end
     // state machine registers description
@@ -149,7 +153,7 @@ reg ctr_dec;  // ctr_dec = 1 >>> decrement the counter by 1
                                     mux_sel_C <= 1'b1;
                                     regE_en <= 1'b1;
                                     regE_shift <= 1'b0;
-                                    mux_sel_mont_1 <= 2'b11;
+                                    mux_sel_mont_1 <= 2'b01;
                                     mux_sel_mont_2 <= 2'b01;
                                     rstn_mont <= 1'b0;   // rst montogomery
                                     ctr_dec <= 1'd0;
@@ -270,7 +274,7 @@ reg ctr_dec;  // ctr_dec = 1 >>> decrement the counter by 1
                                          x <= 1'b1;
                                          xsub <= 1'b1;
                                          mux_sel_C <= 1'b0;
-                                         if (mont_result [510] == 0) regC_en <= 1'b1;
+                                         if (mont_result [512] == 0) regC_en <= 1'b1;
                                          else                        regC_en <= 1'b0;                              
                                    end 
                                  
@@ -524,7 +528,7 @@ reg ctr_dec;  // ctr_dec = 1 >>> decrement the counter by 1
                                 end            
                                 
                         5'd15 : begin 
-                                    if (mont_result[510] ==0 ) nextstate <= 5'd14;
+                                    if (mont_result[512] ==0 ) nextstate <= 5'd14;
                                     else                       nextstate <= 5'd1;
                                 end       
                         5'd1 : begin 
