@@ -88,7 +88,6 @@ void montMul(uint32_t *a, uint32_t *b, uint32_t *n, uint32_t *n_prime, uint32_t 
 //Optimized montgomery multiplication
 void montMulOpt(uint32_t *a, uint32_t *b, uint32_t *n, uint32_t *n_prime, uint32_t *res, uint32_t size)
 {
-
 	uint32_t t[65]={0x0};
 	uint32_t temp_res [33]={0x0};
 	uint32_t temp_n [33]={0x0};
@@ -103,74 +102,36 @@ void montMulOpt(uint32_t *a, uint32_t *b, uint32_t *n, uint32_t *n_prime, uint32
 	    cond_sub(temp_res, temp_n, res,size+1);
 	}
 	else cond_sub(temp_res, n, res,size);
-
-
-}
-
-void montMulOptsq(uint32_t *a, uint32_t *b, uint32_t *n, uint32_t *n_prime, uint32_t *res, uint32_t size)
-{
-
-	uint32_t t[65]={0x0};
-	uint32_t temp_res [33]={0x0};
-	uint32_t temp_n [33]={0x0};
-	mult_sqloop(size, a, b, t);
-
-	red_loop(size, n_prime[0], n, t);
-
-	arr_copy(&t[size], temp_res, 33);
-
-	if(temp_res[32]==1){
-		arr_copy(n, temp_n, 32);
-	    cond_sub(temp_res, temp_n, res,size+1);
-	}
-	else cond_sub(temp_res, n, res,size);
-
-
 }
 
 
-//uint32x4_t double_elements(uint32x4_t input)
-//{
-//return(vaddq_u32(input, input));
-//}
+//inverse chinese remainder theorem implementation
+void compute_invcrt(uint32_t *ptext, uint32_t *x, uint32_t *icrt, uint32_t size){
+	uint32_t temp_cq[32]={0x0};
+	arr_copy(ptext, temp_cq, 16);
+	montMulOpt(temp_cq,x,N,N_prime,icrt, size);
+}
 
 
+//Montgomery exponentiation using Optimized montgomery multiplication
 uint32_t mont_exp(uint32_t *expres, uint32_t *message, uint32_t *n, uint32_t *n_prime, uint32_t *rmodn,uint32_t *r2modn,uint32_t *exp,uint32_t exp_len,uint32_t size){
 	uint32_t r=0;
-	uint32_t temp_A [32]={0x0};
-	uint32_t x_til [32]={0x0};
+	uint32_t temp_A[32]={0x0};
+	uint32_t x_til[32]={0x0};
 	uint32_t One[32] = {1,0};
 	montMulOpt(message,r2modn,n,n_prime,x_til, size);
 	arr_copy(rmodn, temp_A, 32);
-	//xil_printf("exp_len = %d 0x%x\r\n", exp_len,exp[0]);
 	uint32_t i=exp_len;
-	//while(i>0){
 	for(i;i>0;i--){
-//		xil_printf("i val = %d %d\r\n", i-1, (exp[0]>>i-1)&1);
-//		xil_printf("A =");
-//		print_num(temp_A, 32);
-//		xil_printf("\n\r");
 
-		//START_TIMING
 		montMulOpt(temp_A,temp_A,n,n_prime,temp_A, size);
-		//STOP_TIMING
-		if ((exp[0]>>i-1)&1==1){
-//			xil_printf("after check A =");
-//			print_num(temp_A, 32);
-//			xil_printf("\n\r");
-			//START_TIMING
-			montMulOpt(temp_A,x_til,n,n_prime,temp_A, size);
-			//STOP_TIMING
-		}
-		//i--;
 
+		if ((exp[0]>>i-1)&1==1){
+			montMulOpt(temp_A,x_til,n,n_prime,temp_A, size);
+		}
 	}
 
-
-
-	//START_TIMING
 	montMulOpt(temp_A,One,n,n_prime,expres, size);
-	//STOP_TIMING
 
 	return temp_A;
 
