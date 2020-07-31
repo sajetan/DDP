@@ -1,7 +1,9 @@
 # DDP
-Design of Digital Platforms HW and SW assignments.
+Design of Digital Platforms HW and SW project.
 
 - Source code in this path - ./sw_project/src/sw/
+
+RSA implementation for HW/SW codesign. (will be updated further)
 
 Team:
 - Ho-Ya Huang,	
