@@ -1,5 +1,4 @@
 # DDP
-Design of Digital Platforms HW and SW project.
 
 - Source code in this path - ./sw_project/src/sw/
 
